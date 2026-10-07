@@ -1,0 +1,9 @@
+PROJECT := acid303
+PROJECT_TYPE := oscillator
+
+UCSRC =
+UCXXSRC = osc.cpp
+UINCDIR =
+UDEFS =
+ULIB =
+ULIBDIR =
