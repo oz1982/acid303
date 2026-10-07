@@ -19,7 +19,7 @@ jobs:
       - name: Get logue SDK
         run: git clone --depth 1 --recursive https://github.com/korginc/logue-sdk.git sdk
 
-          - name: Prepare project
+      - name: Prepare project
         run: |
           DEST=sdk/platform/nutekt-digital/acid303
           rm -rf "$DEST"
