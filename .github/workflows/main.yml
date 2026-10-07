@@ -19,12 +19,17 @@ jobs:
       - name: Get logue SDK
         run: git clone --depth 1 --recursive https://github.com/korginc/logue-sdk.git sdk
 
-      - name: Prepare project
+          - name: Prepare project
         run: |
           DEST=sdk/platform/nutekt-digital/acid303
-          mkdir -p "$DEST"
-          cp -r acid303/. "$DEST"/
-          cp sdk/platform/nutekt-digital/dummy-osc/Makefile "$DEST"/Makefile
+          rm -rf "$DEST"
+          cp -r sdk/platform/nutekt-digital/dummy-osc "$DEST"
+          cp acid303/osc.cpp "$DEST"/osc.cpp
+          cp acid303/manifest.json "$DEST"/manifest.json
+          sed -i 's/^PROJECT *[:?]*= .*/PROJECT := acid303/' "$DEST"/project.mk
+          sed -i 's/^UCXXSRC *[:+]*= .*/UCXXSRC = osc.cpp/' "$DEST"/project.mk
+          ls -la "$DEST"
+          cat "$DEST"/project.mk
 
       - name: Build
         run: make -C sdk/platform/nutekt-digital/acid303
