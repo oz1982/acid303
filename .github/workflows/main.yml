@@ -14,10 +14,19 @@ jobs:
       - name: Install ARM toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-none-eabi make zip
+          sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi make zip
 
       - name: Get logue SDK
         run: git clone --depth 1 --recursive https://github.com/korginc/logue-sdk.git sdk
+
+      - name: Link toolchain where the SDK expects it
+        run: |
+          T=sdk/tools/gcc/gcc-arm-none-eabi-5_4-2016q3
+          mkdir -p "$T"
+          ln -s /usr/bin "$T/bin"
+          ln -s /usr/lib/arm-none-eabi "$T/arm-none-eabi"
+          arm-none-eabi-gcc --version | head -1
+          ls "$T/bin" | grep arm-none-eabi-gcc
 
       - name: Prepare project
         run: |
@@ -28,7 +37,6 @@ jobs:
           cp acid303/manifest.json "$DEST"/manifest.json
           sed -i 's/^PROJECT *[:?]*= .*/PROJECT := acid303/' "$DEST"/project.mk
           sed -i 's/^UCXXSRC *[:+]*= .*/UCXXSRC = osc.cpp/' "$DEST"/project.mk
-          ls -la "$DEST"
           cat "$DEST"/project.mk
 
       - name: Build
