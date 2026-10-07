@@ -1,0 +1,41 @@
+name: Build NTS-1 unit
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi make zip
+
+      - name: Get logue SDK
+        run: git clone --depth 1 --recursive https://github.com/korginc/logue-sdk.git sdk
+
+      - name: Prepare project
+        run: |
+          DEST=sdk/platform/nutekt-digital/acid303
+          mkdir -p "$DEST"
+          cp -r acid303/. "$DEST"/
+          cp sdk/platform/nutekt-digital/dummy-osc/Makefile "$DEST"/Makefile
+
+      - name: Build
+        run: make -C sdk/platform/nutekt-digital/acid303
+
+      - name: Collect unit
+        run: |
+          mkdir -p out
+          cp sdk/platform/nutekt-digital/acid303/*.ntkdigunit out/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: acid303-ntkdigunit
+          path: out/*.ntkdigunit
