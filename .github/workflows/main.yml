@@ -31,26 +31,33 @@ jobs:
           DEST=sdk/platform/nutekt-digital/acid303
           rm -rf "$DEST"
           cp -r sdk/platform/nutekt-digital/dummy-osc "$DEST"
+          echo "--- ancien project.mk ---"
+          cat "$DEST"/project.mk
           cp acid303/osc.cpp "$DEST"/osc.cpp
           cp acid303/manifest.json "$DEST"/manifest.json
-          sed -i 's/^PROJECT *[:?]*= .*/PROJECT := acid303/' "$DEST"/project.mk
-          sed -i 's/^UCXXSRC *[:+]*= .*/UCXXSRC = osc.cpp/' "$DEST"/project.mk
+          printf 'PROJECT := acid303\nPROJECT_TYPE := oscillator\n\nUCSRC =\nUCXXSRC = osc.cpp\nUINCDIR =\nUDEFS =\nULIB =\nULIBDIR =\n' > "$DEST"/project.mk
+          echo "--- nouveau project.mk ---"
           cat "$DEST"/project.mk
 
       - name: Build
         run: make -C sdk/platform/nutekt-digital/acid303
 
-      - name: Collect unit
+      - name: Package unit
         run: |
           D=sdk/platform/nutekt-digital/acid303
-          echo "--- contenu du dossier ---"
-          ls -la "$D"
-          echo "--- contenu de build ---"
-          ls -laR "$D/build" | head -60
+          echo "--- objets compiles ---"
+          ls -la "$D/build/obj"
+          make -C "$D" install || echo "pas de cible install"
           mkdir -p out
           find sdk -name "*.ntkdigunit" -exec cp {} out/ \;
+          if [ -z "$(ls out)" ]; then
+            echo "Packaging manuel"
+            mkdir -p pkg/acid303
+            cp "$D/manifest.json" pkg/acid303/manifest.json
+            cp "$D/build/acid303.bin" pkg/acid303/payload.bin
+            (cd pkg/acid303 && zip -r9 ../../out/acid303.ntkdigunit manifest.json payload.bin)
+          fi
           ls -la out
-          test -n "$(ls out)"
 
       - name: Upload artifact
         if: always()
@@ -59,6 +66,6 @@ jobs:
           name: acid303-build
           path: |
             out/
-            sdk/platform/nutekt-digital/acid303/build/*.elf
             sdk/platform/nutekt-digital/acid303/build/*.bin
+            sdk/platform/nutekt-digital/acid303/build/*.map
           if-no-files-found: warn
